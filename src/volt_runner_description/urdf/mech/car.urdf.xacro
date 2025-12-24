@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="simple_car">
+
+  <xacro:include filename="../sensors/receiver.urdf.xacro" />
+
+  <xacro:property name="car_ground_clearance" value="0.22"/> <xacro:property name="car_length" value="1.4"/>
+  <xacro:property name="car_width"  value="0.85"/>
+  <xacro:property name="car_total_height"   value="0.75"/>
+  <xacro:property name="car_body_height"    value="0.4"/> 
+  <xacro:property name="cabin_height"       value="0.35"/>
+  <xacro:property name="cabin_length"       value="0.8"/> 
+  <xacro:property name="cabin_width"        value="0.7"/> 
+  <xacro:property name="cabin_x_offset"     value="0.1"/> 
+  <xacro:property name="car_mass"   value="30.0"/>
+
+  <xacro:property name="car_wheel_radius" value="0.15"/>
+  <xacro:property name="car_wheel_width"  value="0.1"/>
+  <xacro:property name="car_wheel_mass"   value="1.0"/>
+
+  <xacro:property name="car_chassis_z_center" value="${car_ground_clearance + car_body_height / 2.0}"/>
+  
+  <xacro:property name="wheel_x_margin" value="0.2"/> 
+  <xacro:property name="wheel_y_gap"    value="0.01"/>
+  
+  <xacro:property name="wheel_x_offset" value="${car_length / 2.0 - wheel_x_margin}"/>
+  <xacro:property name="wheel_y_offset" value="${car_width  / 2.0 + (car_wheel_width / 2.0) + wheel_y_gap}"/>
+  
+  <xacro:property name="wheel_z_offset" value="${car_wheel_radius}"/>
+
+  <xacro:macro name="wheel" params="prefix parent joint_origin_xyz">
+    <joint name="${prefix}_wheel_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}_wheel_link"/>
+      <origin xyz="${joint_origin_xyz}" rpy="0 0 0"/>
+    </joint>
+    <link name="${prefix}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+        <geometry>
+          <cylinder radius="${car_wheel_radius}" length="${car_wheel_width}"/>
+        </geometry>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+        <geometry>
+          <cylinder radius="${car_wheel_radius}" length="${car_wheel_width}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${car_wheel_mass}"/>
+        <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <material name="CarBodySilver">
+    <color rgba="0.6 0.7 0.7 1.0"/>
+  </material>
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+
+  <link name="car_base_footprint"/>
+
+  <joint name="car_base_joint" type="fixed">
+    <parent link="car_base_footprint"/>
+    <child link="car_base_link"/>
+    <origin xyz="0 0 ${car_chassis_z_center}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="car_base_link">
+    <visual>
+      <geometry>
+        <box size="${car_length} ${car_width} ${car_body_height}"/>
+      </geometry>
+      <material name="CarBodySilver"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${car_length} ${car_width} ${car_body_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${car_mass}"/>
+      <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="cabin_joint" type="fixed">
+    <parent link="car_base_link"/>
+    <child link="cabin_link"/>
+    <origin xyz="${cabin_x_offset} 0 ${car_body_height / 2.0 + cabin_height / 2.0}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="cabin_link">
+    <visual>
+      <geometry>
+        <box size="${cabin_length} ${cabin_width} ${cabin_height}"/>
+      </geometry>
+      <material name="CarBodySilver"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${cabin_length} ${cabin_width} ${cabin_height}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <xacro:wheel prefix="front_left"  parent="car_base_link"
+    joint_origin_xyz="${wheel_x_offset}  ${wheel_y_offset}  ${wheel_z_offset - car_chassis_z_center}"/>
+  <xacro:wheel prefix="front_right" parent="car_base_link"
+    joint_origin_xyz="${wheel_x_offset} -${wheel_y_offset}  ${wheel_z_offset - car_chassis_z_center}"/>
+  <xacro:wheel prefix="rear_left"   parent="car_base_link"
+    joint_origin_xyz="-${wheel_x_offset} ${wheel_y_offset}  ${wheel_z_offset - car_chassis_z_center}"/>
+  <xacro:wheel prefix="rear_right"  parent="car_base_link"
+    joint_origin_xyz="-${wheel_x_offset} -${wheel_y_offset} ${wheel_z_offset - car_chassis_z_center}"/>
+
+  <xacro:receiver_sensor 
+      prefix="front_receiver" 
+      parent="car_base_link"
+      xyz_origin="0 0 ${-car_body_height/2.0 - 0.01/2.0}"
+      rpy_origin="0 0 0" />
+
+</robot>

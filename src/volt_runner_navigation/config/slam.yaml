@@ -1,0 +1,40 @@
+slam_toolbox:
+  ros__parameters:
+    # 플러그인
+    solver_plugin: "solver_plugins::CeresSolver"
+    ceres_linear_solver: "SPARSE_NORMAL_CHOLESKY"
+    ceres_preconditioner: "SCHUR_JACOBI"
+    ceres_trust_strategy: "LEVENBERG_MARQUARDT"
+    ceres_dogleg_type: "TRADITIONAL_DOGLEG"
+    ceres_loss_function: "None"
+
+    # ROS 파라미터
+    odom_frame: "odom"
+    map_frame: "map"
+    base_frame: "base_footprint" # 로봇 URDF의 기준 프레임
+    scan_topic: "/scan" # YDLIDAR G6가 발행하는 스캔 토픽
+    map_update_interval: 1.0 # 1초마다 맵 업데이트
+    resolution: 0.05 # 맵 해상도 (5cm)
+    mode : "mapping"
+
+    # 맵 설정
+    map_size: 2048
+    map_start_x: -5.12
+    map_start_y: -5.12
+
+    # 최소/최대 레이저 범위
+    max_laser_range: 12.0 # YDLIDAR G6의 유효 범위 고려
+    min_laser_range: 0.1
+
+    # 스캔 매칭 설정
+    use_scan_matching: true
+    scan_match_min_probability: 0.1
+    scan_match_max_distance: 0.3
+    scan_match_max_rotation: 0.2
+    
+    # 기타
+    transform_publish_period: 0.02 # 50hz
+    map_publish_period: 2.0
+    use_map_saving: true
+    map_save_on_shutdown: true
+    map_filename: "volt_runner_map" # 저장될 맵 파일 이름

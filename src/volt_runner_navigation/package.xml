@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>volt_runner_navigation</name>
+  <version>0.0.0</version>
+  <description>
+    Navigation / SLAM launch and configuration package for the volt_runner robot.
+  </description>
+
+  <maintainer email="lim@todo.todo">lim</maintainer>
+  <license>Apache-2.0</license>
+
+  <!-- 이 패키지는 CMake가 아니라 setup.py(ament_python)를 사용 -->
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <!-- 런치/설정에서 사용하는 런타임 의존성들 -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>robot_localization</exec_depend>
+  
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_costmap_2d</exec_depend>
+  <exec_depend>nav2_controller</exec_depend>
+  <exec_depend>nav2_planner</exec_depend>
+  <exec_depend>nav2_bt_navigator</exec_depend>
+  <exec_depend>nav2_amcl</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+  <exec_depend>nav2_lifecycle_manager</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+
+
+
+
+  <!-- 파이썬 노드를 쓸 여지가 있으면 -->
+  <exec_depend>rclpy</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

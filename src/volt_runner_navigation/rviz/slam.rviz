@@ -1,0 +1,83 @@
+# volt_runner_navigation/rviz/slam.rviz
+# (VoltRunner와 Car 모델을 모두 포함하는 최종 SLAM 설정)
+
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+  - Class: rviz_common/Tool Properties
+    Name: Tool Properties
+
+Visualization Manager:
+  Class: ""
+  Displays:
+    # ... (1. Grid, 2. TF, 3. Map, 4. LaserScan ... 은 동일) ...
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Plane: XY
+      Cell Size: 0.5
+      Color: 160; 160; 160
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+    - Class: rviz_default_plugins/Map
+      Name: Map
+      Enabled: true
+      Topic:
+        Value: /map
+      Color Scheme: map
+    - Class: rviz_default_plugins/LaserScan
+      Name: LaserScan
+      Enabled: true
+      Topic:
+        Value: /scan
+      Size (m): 0.05
+      Style: Points
+      Message Filter:
+        Queue Size: 50
+
+    # 5. 로봇 모델 1 (volt_runner - 우리 로봇)
+    - Class: rviz_default_plugins/RobotModel
+      Name: VoltRunner
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+      # (VoltRunner는 prefix가 없으므로 TF Prefix 항목이 없습니다)
+
+    # 6. [수정됨] 로봇 모델 2 (Car - 고정된 차)
+    - Class: rviz_default_plugins/RobotModel
+      Name: Car
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /my_car/robot_description # (car_rsp가 발행)
+      # --- [ 이 줄이 추가되었습니다 ] ---
+      TF Prefix: "my_car"
+      # ---------------------------------
+
+  Enabled: true
+  Global Options:
+    Fixed Frame: base_footprint
+    Background Color: 48; 48; 48
+  
+  # ... (Tools, Views 부분은 동일) ...
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/SetInitialPose
+    - Class: rviz_default_plugins/SetGoal
+
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 7.0
+      Pitch: 0.6
+      Yaw: 0.78
+      Target Frame: <Fixed Frame>

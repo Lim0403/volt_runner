@@ -1,0 +1,23 @@
+# 파일 경로: volt_runner/src/volt_runner_gazebo/config/gz_bridge.yaml
+bridges:
+  
+  # 1. 제어 명령 (Cmd Twist): IkToTwistAdapter에서 발행된 명령을 Gazebo로 전달
+  - ros_topic: /cmd_vel_gz # IkToTwistAdapter가 발행할 최종 명령 토픽
+    gz_topic: /model/volt_runner/cmd_vel
+    ros_type: geometry_msgs/msg/Twist
+    gz_type: gz.msgs.Twist
+    direction: ROS_TO_GZ
+    
+  # 2. 피드백 (Joint State): Gazebo의 이상적인 휠 속도(rad/s)를 ROS로 가져옴
+  - ros_topic: /ros_joint_states
+    gz_topic: /model/volt_runner/joint_state
+    ros_type: sensor_msgs/msg/JointState
+    gz_type: gz.msgs.JointState
+    direction: GZ_TO_ROS
+
+  # 3. 옵션: Gazebo의 자체 오도메트리 브릿징 (검증용, 고객님 OdomPublisher와 별개)
+  - ros_topic: /gz_odom
+    gz_topic: /model/volt_runner/odometry
+    ros_type: nav_msgs/msg/Odometry
+    gz_type: gz.msgs.Odometry
+    direction: GZ_TO_ROS

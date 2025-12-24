@@ -1,0 +1,149 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Selection
+    Name: Selection
+  - Class: rviz_common/Tool Properties
+    Name: Tool Properties
+  - Class: rviz_common/Views
+    Name: Views
+  - Class: rviz_common/Time
+    Name: Time
+    SyncMode: 0
+    SyncSource: Scan
+
+Visualization Manager:
+  Class: ""
+  Enabled: true
+  Name: root
+
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: map        # Nav2 기준 map 프레임
+
+  Displays:
+    # Grid
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Plane: XY
+      Cell Size: 0.5
+      Color: 160; 160; 160
+      Reference Frame: <Fixed Frame>
+
+    # TF
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+      Frame Timeout: 15
+      Marker Scale: 1
+
+    # Map
+    - Class: rviz_default_plugins/Map
+      Name: Map
+      Enabled: true
+      Topic:
+        Value: /map
+      Color Scheme: map
+      Use Timestamp: false
+
+    # Global Costmap
+    - Class: nav2_rviz_plugins/Costmap
+      Name: GlobalCostmap
+      Enabled: true
+      Alpha: 0.7
+      Color Scheme: costmap
+      Topic: /global_costmap/global_costmap/costmap
+
+    # Local Costmap
+    - Class: nav2_rviz_plugins/Costmap
+      Name: LocalCostmap
+      Enabled: true
+      Alpha: 0.7
+      Color Scheme: costmap
+      Topic: /local_costmap/local_costmap/costmap
+
+    # Laser Scan
+    - Class: rviz_default_plugins/LaserScan
+      Name: Scan
+      Enabled: true
+      Topic:
+        Value: /scan
+      Color: 255; 255; 255
+      Size (m): 0.03
+      Style: Squares
+      Use Fixed Frame: false
+
+    # Global Plan
+    - Class: rviz_default_plugins/Path
+      Name: Global Plan
+      Enabled: true
+      Topic:
+        Value: /plan
+      Color: 25; 255; 0
+      Line Width: 0.03
+
+    # Local Plan
+    - Class: rviz_default_plugins/Path
+      Name: Local Plan
+      Enabled: true
+      Topic:
+        Value: /local_plan
+      Color: 25; 255; 0
+      Line Width: 0.03
+
+    # Footprint
+    - Class: rviz_default_plugins/Polygon
+      Name: Footprint
+      Enabled: true
+      Topic:
+        Value: /local_costmap/footprint
+      Color: 25; 255; 0
+
+    # 5. 로봇 모델 1 (volt_runner - 우리 로봇)
+    - Class: rviz_default_plugins/RobotModel
+      Name: VoltRunner
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+      # (VoltRunner는 prefix가 없으므로 TF Prefix 항목이 없습니다)
+
+    # 6. [수정됨] 로봇 모델 2 (Car - 고정된 차)
+    - Class: rviz_default_plugins/RobotModel
+      Name: Car
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /my_car/robot_description # (car_rsp가 발행)
+      # --- [ 이 줄이 추가되었습니다 ] ---
+      TF Prefix: "my_car"
+      # ---------------------------------
+
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/Measure
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /goal_pose
+
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+      Distance: 10.0
+      Pitch: 1.0
+      Yaw: 3.0
+      Target Frame: map
+
+Window Geometry:
+  Width: 1920
+  Height: 1080

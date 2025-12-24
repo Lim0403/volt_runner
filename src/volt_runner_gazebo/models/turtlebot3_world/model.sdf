@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <model name="turtlebot3_world_assets">
+    <static>true</static>
+
+    <!-- 예시 장애물: 육각기둥 -->
+    <link name="hex_column">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://turtlebot3_world/meshes/hexagon.dae</uri>
+          </mesh>
+        </geometry>
+        <pose>2 2 0 0 0 0</pose>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://turtlebot3_world/meshes/hexagon.dae</uri>
+          </mesh>
+        </geometry>
+        <pose>2 2 0 0 0 0</pose>
+      </collision>
+    </link>
+
+    <!-- 예시 벽 -->
+    <link name="wall_1">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://turtlebot3_world/meshes/wall.dae</uri>
+          </mesh>
+        </geometry>
+        <pose>-2 0 0 0 0 0</pose>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://turtlebot3_world/meshes/wall.dae</uri>
+          </mesh>
+        </geometry>
+        <pose>-2 0 0 0 0 0</pose>
+      </collision>
+    </link>
+
+  </model>
+</sdf>

@@ -1,0 +1,26 @@
+twist_mux:
+  ros__parameters:
+    # Jazzy twist_mux가 필수로 요구하는 파라미터
+    use_stamped: false   # 우리는 geometry_msgs/Twist 쓰니까 false
+
+    topics:
+      teleop:
+        topic: /cmd_vel
+        timeout: 0.5
+        priority: 100   # 수동조작 최우선
+
+      rl:
+        topic: /cmd_vel_rl
+        timeout: 0.5
+        priority: 50
+
+      nav2:
+        topic: /cmd_vel_nav2
+        timeout: 0.5
+        priority: 10    # 가장 낮은 우선순위
+
+    locks:
+      e_stop:
+        topic: /e_stop
+        timeout: 0.0
+        priority: 255   # 필요 없으면 그냥 안 쓰이는 lock이라 무시해도 됨

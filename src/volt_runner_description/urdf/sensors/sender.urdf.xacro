@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="sender_sensor">
+
+  <material name="SensorGreen">
+    <color rgba="0.1 0.8 0.1 1.0"/>
+  </material>
+
+  <xacro:macro name="sender_sensor" params="parent prefix xyz_origin rpy_origin">
+    
+    <joint name="${prefix}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}_link"/>
+      <origin xyz="${xyz_origin}" rpy="${rpy_origin}"/>
+    </joint>
+
+    <link name="${prefix}_link">
+      <visual>
+        <geometry>
+          <cylinder radius="0.04" length="0.006"/>
+        </geometry>
+        <material name="SensorGreen"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="0.04" length="0.006"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.05"/> 
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+</robot>
