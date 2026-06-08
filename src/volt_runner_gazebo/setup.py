@@ -44,10 +44,11 @@ setup(
     license='Apache-2.0',
     tests_require=['pytest'],
 
-    # # ✅ 여기만 새로 추가됨!!!
-    # entry_points={
-    #     'console_scripts': [
-    #         'coil_pose_publisher = volt_runner_gazebo.coil_pose_publisher:main',
-    #     ],
-    # },
+   
+    #entry_points={
+    #    'console_scripts': [
+    #        'coil_pose_publisher = volt_runner_gazebo.coil_pose_publisher:main',
+    #        'policy_to_cmd_vel_node = volt_runner_gazebo.policy_to_cmd_vel_node:main',
+    #    ],
+    #},
 )

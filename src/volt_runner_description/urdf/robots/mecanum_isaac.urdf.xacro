@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="volt_runner_mecanum">
+
+  <!-- ===== includes ===== -->
+  <xacro:include filename="$(find volt_runner_description)/urdf/properties/mecanum_properties.urdf.xacro"/>
+  <xacro:include filename="$(find volt_runner_description)/urdf/mech/base.urdf.xacro"/>
+  <xacro:include filename="$(find volt_runner_description)/urdf/mech/wheel_isaac.urdf.xacro"/>
+  <xacro:include filename="$(find volt_runner_description)/urdf/sensors/sender.urdf.xacro"/>
+
+  <!-- ====== 전면 박스 ====== -->
+  <xacro:property name="front_box_len" value="0.07"/>
+  <xacro:property name="front_box_wid" value="0.145"/>
+  <xacro:property name="front_box_hei" value="0.03"/>
+  <xacro:property name="front_box_cx"  value="${ base_length/2.0 - front_box_len/2.0 }"/>
+  <xacro:property name="front_box_cz"  value="${ base_height/2.0 + front_box_hei/2.0 }"/>
+
+  <joint name="front_box_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_box_link"/>
+    <origin xyz="${front_box_cx} 0 ${front_box_cz}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="front_box_link">
+    <visual>
+      <geometry>
+        <box size="${front_box_len} ${front_box_wid} ${front_box_hei}"/>
+      </geometry>
+      <material name="FrontBoxGrey">
+        <color rgba="0.6 0.6 0.6 1"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0" ixz="0"
+               iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- ====== 바디 / 휠 ====== -->
+  <xacro:base
+    length="${base_length}"
+    width="${base_width}"
+    height="${base_height}"
+    mass="${base_mass}"
+    wheel_radius="${wheel_radius}"
+    mesh_file=""/>
+
+  <xacro:mecanum_wheel name="front_left"  parent="base_link"
+      radius="${wheel_radius}" width="${wheel_width}" mass="${wheel_mass}"
+      pos_x="${front_wheel_x}" pos_y="${ wheel_center_y_abs}" pos_z="${base_height/2 - wheel_radius}"/>
+
+  <xacro:mecanum_wheel name="front_right" parent="base_link"
+      radius="${wheel_radius}" width="${wheel_width}" mass="${wheel_mass}"
+      pos_x="${front_wheel_x}" pos_y="${-wheel_center_y_abs}" pos_z="${base_height/2 - wheel_radius}"/>
+
+  <xacro:mecanum_wheel name="rear_left"   parent="base_link"
+      radius="${wheel_radius}" width="${wheel_width}" mass="${wheel_mass}"
+      pos_x="${rear_wheel_x}"  pos_y="${ wheel_center_y_abs}" pos_z="${base_height/2 - wheel_radius}"/>
+
+  <xacro:mecanum_wheel name="rear_right"  parent="base_link"
+      radius="${wheel_radius}" width="${wheel_width}" mass="${wheel_mass}"
+      pos_x="${rear_wheel_x}"  pos_y="${-wheel_center_y_abs}" pos_z="${base_height/2 - wheel_radius}"/>
+
+  <!-- ====== 3층 캐빈 스택 ====== -->
+  <xacro:property name="table_len" value="0.10"/>
+  <xacro:property name="table_wid" value="0.10"/>
+  <xacro:property name="table_thk" value="0.002"/>
+  <xacro:property name="leg_rad"   value="0.0015"/>
+
+  <xacro:property name="h1" value="0.040"/>
+  <xacro:property name="h2" value="0.025"/>
+  <xacro:property name="h3" value="0.045"/>
+
+  <xacro:property name="stack_x" value="${ -base_length/2.0 + 0.042 + table_len/2.0 }"/>
+  <xacro:property name="stack_y" value="0.0"/>
+
+  <xacro:macro name="mk_leg" params="name parent xyz len">
+    <joint name="${name}_j" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${name}_l"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+    </joint>
+    <link name="${name}_l">
+      <visual>
+        <geometry>
+          <cylinder radius="${leg_rad}" length="${len}"/>
+        </geometry>
+        <material name="LegGray">
+          <color rgba="0.4 0.4 0.4 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.005"/>
+        <inertia ixx="1e-5" ixy="0" ixz="0"
+                 iyy="1e-5" iyz="0" izz="1e-5"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <!-- ===== 1층 캐빈 ===== -->
+  <joint name="table_1_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="table_1_link"/>
+    <origin xyz="${stack_x} ${stack_y} ${base_height/2.0 + h1 - table_thk/2.0}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="table_1_link">
+    <visual>
+      <geometry>
+        <box size="${table_len} ${table_wid} ${table_thk}"/>
+      </geometry>
+      <material name="TableGreen">
+        <color rgba="0.1 0.6 0.1 1"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="1e-4" ixy="0" ixz="0"
+               iyy="1e-4" iyz="0" izz="1e-4"/>
+    </inertial>
+  </link>
+
+  <xacro:property name="leg1_len" value="${h1 - table_thk}"/>
+  <xacro:property name="leg1_z"   value="${base_height/2.0 + leg1_len/2.0}"/>
+  <xacro:property name="ldx"      value="${table_len/2.0 - 0.008}"/>
+  <xacro:property name="ldy"      value="${table_wid/2.0 - 0.008}"/>
+
+  <xacro:mk_leg name="leg1_fl" parent="base_link"
+                xyz="${stack_x + ldx} ${stack_y + ldy} ${leg1_z}"
+                len="${leg1_len}"/>
+  <xacro:mk_leg name="leg1_fr" parent="base_link"
+                xyz="${stack_x + ldx} ${stack_y - ldy} ${leg1_z}"
+                len="${leg1_len}"/>
+  <xacro:mk_leg name="leg1_rl" parent="base_link"
+                xyz="${stack_x - ldx} ${stack_y + ldy} ${leg1_z}"
+                len="${leg1_len}"/>
+  <xacro:mk_leg name="leg1_rr" parent="base_link"
+                xyz="${stack_x - ldx} ${stack_y - ldy} ${leg1_z}"
+                len="${leg1_len}"/>
+
+  <!-- ===== 2층 캐빈 ===== -->
+  <joint name="table_2_joint" type="fixed">
+    <parent link="table_1_link"/>
+    <child  link="table_2_link"/>
+    <origin xyz="0 0 ${h2}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="table_2_link">
+    <visual>
+      <geometry>
+        <box size="${table_len} ${table_wid} ${table_thk}"/>
+      </geometry>
+      <material name="TableGreen"/>
+    </visual>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="1e-4" ixy="0" ixz="0"
+               iyy="1e-4" iyz="0" izz="1e-4"/>
+      </inertial>
+  </link>
+
+  <xacro:property name="leg2_len" value="${h2 - table_thk}"/>
+
+  <xacro:mk_leg name="leg2_fl" parent="table_1_link"
+                xyz="${ldx} ${ldy} ${h2/2.0}"
+                len="${leg2_len}"/>
+  <xacro:mk_leg name="leg2_fr" parent="table_1_link"
+                xyz="${ldx} ${-ldy} ${h2/2.0}"
+                len="${leg2_len}"/>
+  <xacro:mk_leg name="leg2_rl" parent="table_1_link"
+                xyz="${-ldx} ${ldy} ${h2/2.0}"
+                len="${leg2_len}"/>
+  <xacro:mk_leg name="leg2_rr" parent="table_1_link"
+                xyz="${-ldx} ${-ldy} ${h2/2.0}"
+                len="${leg2_len}"/>
+
+  <!-- ===== 3층 캐빈 ===== -->
+  <joint name="table_3_joint" type="fixed">
+    <parent link="table_2_link"/>
+    <child  link="table_3_link"/>
+    <origin xyz="0 0 ${h3}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="table_3_link">
+    <visual>
+      <geometry>
+        <box size="${table_len} ${table_wid} ${table_thk}"/>
+      </geometry>
+      <material name="TableGreen"/>
+    </visual>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="1e-4" ixy="0" ixz="0"
+               iyy="1e-4" iyz="0" izz="1e-4"/>
+    </inertial>
+  </link>
+
+  <xacro:property name="leg3_len" value="${h3 - table_thk}"/>
+
+  <xacro:mk_leg name="leg3_rl" parent="table_2_link"
+                xyz="${-ldx} ${ldy} ${h3/2.0}"
+                len="${leg3_len}"/>
+  <xacro:mk_leg name="leg3_rr" parent="table_2_link"
+                xyz="${-ldx} ${-ldy} ${h3/2.0}"
+                len="${leg3_len}"/>
+
+  <!-- ===== sender: 3층 캐빈 위 ===== -->
+  <xacro:sender_sensor
+      parent="table_3_link"
+      prefix="rear_sender"
+      xyz_origin="0 0 ${table_thk/2.0 + 0.005}"
+      rpy_origin="0 0 0"/>
+
+</robot>

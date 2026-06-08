@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+
+import numpy as np
+import torch
+
+import rclpy
+from rclpy.node import Node
+
+from std_msgs.msg import Float32
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+
+
+class PolicyToCmdVelNode(Node):
+    def __init__(self):
+        super().__init__("policy_to_cmd_vel_node")
+
+        self.declare_parameter(
+            "model_path",
+            "/home/lim/IsaacLab/logs/rsl_rl/exported/policy.pt",
+        )
+
+        self.declare_parameter("pt_topic", "/coil_efficiency")
+        self.declare_parameter("odom_topic", "/odom")
+        self.declare_parameter("cmd_topic", "/cmd_vel_rl")
+
+        # 학습 때 dt_env = 0.1s 이므로 10Hz가 맞음
+        self.declare_parameter("control_hz", 10.0)
+
+        # 실제 로봇 안전용 최대 속도 제한
+        self.declare_parameter("max_vx", 0.02)
+        self.declare_parameter("max_vy", 0.02)
+        self.declare_parameter("max_wz", 0.15)
+
+        # policy 출력이 [-1, 1] 정규화 action이면 True
+        # policy 출력이 이미 m/s, rad/s면 False
+        self.declare_parameter("action_is_normalized", True)
+
+        model_path = self.get_parameter("model_path").value
+        pt_topic = self.get_parameter("pt_topic").value
+        odom_topic = self.get_parameter("odom_topic").value
+        cmd_topic = self.get_parameter("cmd_topic").value
+
+        self.max_vx = float(self.get_parameter("max_vx").value)
+        self.max_vy = float(self.get_parameter("max_vy").value)
+        self.max_wz = float(self.get_parameter("max_wz").value)
+        self.action_is_normalized = bool(
+            self.get_parameter("action_is_normalized").value
+        )
+
+        self.latest_pt = None
+        self.prev_pt = None
+
+        # [Pt(t-4), Pt(t-3), Pt(t-2), Pt(t-1), Pt(t)]
+        self.pt_history = None
+
+        self.vx = 0.0
+        self.vy = 0.0
+        self.wz = 0.0
+
+        # [a_x(t-1), a_y(t-1), a_w(t-1)]
+        self.prev_action = np.zeros(3, dtype=np.float32)
+
+        self.policy = torch.jit.load(model_path, map_location="cpu")
+        self.policy.eval()
+
+        self.sub_pt = self.create_subscription(
+            Float32,
+            pt_topic,
+            self.pt_callback,
+            10,
+        )
+
+        self.sub_odom = self.create_subscription(
+            Odometry,
+            odom_topic,
+            self.odom_callback,
+            10,
+        )
+
+        self.pub_cmd = self.create_publisher(
+            Twist,
+            cmd_topic,
+            10,
+        )
+
+        period = 1.0 / float(self.get_parameter("control_hz").value)
+        self.timer = self.create_timer(period, self.control_loop)
+
+        self.get_logger().info(f"Loaded policy: {model_path}")
+        self.get_logger().info(f"Subscribe Pt: {pt_topic}")
+        self.get_logger().info(f"Subscribe odom: {odom_topic}")
+        self.get_logger().info(f"Publish RL cmd: {cmd_topic}")
+
+    def pt_callback(self, msg):
+        pt = float(msg.data)
+
+        if self.latest_pt is None:
+            self.latest_pt = pt
+            self.prev_pt = pt
+            self.pt_history = np.array([pt, pt, pt, pt, pt], dtype=np.float32)
+            return
+
+        self.prev_pt = self.latest_pt
+        self.latest_pt = pt
+
+        self.pt_history[:-1] = self.pt_history[1:]
+        self.pt_history[-1] = pt
+
+    def odom_callback(self, msg):
+        self.vx = float(msg.twist.twist.linear.x)
+        self.vy = float(msg.twist.twist.linear.y)
+        self.wz = float(msg.twist.twist.angular.z)
+
+    def control_loop(self):
+        if self.latest_pt is None or self.pt_history is None:
+            return
+
+        pt = float(self.latest_pt)
+        delta_pt = float(self.latest_pt - self.prev_pt)
+
+        obs_np = np.array([
+            pt,
+            delta_pt,
+            self.pt_history[0],
+            self.pt_history[1],
+            self.pt_history[2],
+            self.pt_history[3],
+            self.pt_history[4],
+            self.vx,
+            self.vy,
+            self.wz,
+            self.prev_action[0],
+            self.prev_action[1],
+            self.prev_action[2],
+        ], dtype=np.float32)
+
+        obs = torch.tensor(obs_np, dtype=torch.float32).unsqueeze(0)
+
+        with torch.no_grad():
+            action = self.policy(obs)
+
+        if isinstance(action, (tuple, list)):
+            action = action[0]
+
+        action = action.detach().cpu().numpy().reshape(-1)
+        action = np.nan_to_num(action, nan=0.0, posinf=0.0, neginf=0.0)
+
+        if action.shape[0] != 3:
+            self.get_logger().warn(
+                f"Unsupported policy output dim: {action.shape[0]}, expected 3"
+            )
+            return
+
+        ax = float(action[0])
+        ay = float(action[1])
+        aw = float(action[2])
+
+        if self.action_is_normalized:
+            vx_cmd = np.clip(ax, -1.0, 1.0) * self.max_vx
+            vy_cmd = np.clip(ay, -1.0, 1.0) * self.max_vy
+            wz_cmd = np.clip(aw, -1.0, 1.0) * self.max_wz
+        else:
+            vx_cmd = np.clip(ax, -self.max_vx, self.max_vx)
+            vy_cmd = np.clip(ay, -self.max_vy, self.max_vy)
+            wz_cmd = np.clip(aw, -self.max_wz, self.max_wz)
+
+        cmd = Twist()
+        cmd.linear.x = float(vx_cmd)
+        cmd.linear.y = float(vy_cmd)
+        cmd.angular.z = float(wz_cmd)
+
+        self.pub_cmd.publish(cmd)
+
+        # 다음 step의 previous action으로 저장
+        self.prev_action[:] = np.array([vx_cmd, vy_cmd, wz_cmd], dtype=np.float32)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = PolicyToCmdVelNode()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
